@@ -4,21 +4,21 @@ import morgan from 'morgan';
 import cors from 'cors'
 import path from 'path';
 const __dirname = path.resolve();
-import { PineconeClient } from "@pinecone-database/pinecone";
+import { Pinecone } from "@pinecone-database/pinecone";
 import OpenAI from "openai";
 import "dotenv/config.js";
 import { customAlphabet } from "nanoid";
+import './config/index.mjs'
 
 const nanoid = customAlphabet("1234567890", 20)
 
 const openai = new OpenAI({
-  organization: process.env.OPENAI_API_ORGANIZATION,
+  // organization: process.env.OPENAI_API_ORGANIZATION,
   apiKey: process.env.OPENAI_API_KEY
 });
 
 
-const pinecone = new PineconeClient();
-await pinecone.init({
+const pinecone = new Pinecone({
   environment: "gcp-starter",
   apiKey: process.env.PINE_CONE_API_KEY,
 });
@@ -26,7 +26,6 @@ await pinecone.init({
 
 
 
-import './config/index.mjs'
 
 const mongodbURI = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@todo.lyzzkhz.mongodb.net/?retryWrites=true&w=majority`
 const client = new MongoClient(mongodbURI);
@@ -45,36 +44,43 @@ app.use(morgan('combined'));
 
 app.get("/api/v1/stories", async (req, res) => {
 
-  try {
-    const queryText = req.query.queryText
-    const response = await openai.embeddings.create({
-      model: "text-embedding-ada-002",
-      input: queryText
-    })
+  // try {
+  const queryText = req.query.queryText
+  const response = await openai.embeddings.create({
+    model: "text-embedding-ada-002",
+    input: queryText
+  })
 
-    const vector = response.data[0].embedding
-    const index = pinecone.Index(process.env.PINE_CONE_INDEX_NAME)
-    const queryResponse = await index.query({
-      queryRequest: {
-        vector: vector,
-        // id: "vec1",
-        topK: 100,
-        includeValues: false,
-        includeMetadata: true,
-        // namespace: process.env.PINECONE_NAME_SPACE
-      }
-    });
-
+  const vector = response.data[0].embedding
+  console.log(vector)
+  const index = pinecone.index(process.env.PINE_CONE_INDEX_NAME)
+  await index.query({
+    vector: vector,
+    topK: 100,
+    includeValues: false,
+    includeMetadata: true,
+  }).then((resp) => {
     res.send({
-      response: queryResponse.matches,
+      response: resp,
       message: "All Stories Are Here"
     })
-  } catch (error) {
-    res.status(500).send({
+  }).catch((error) => {
+    res.status(400).send({
       message: "Error While Getting Stories",
       error
     })
-  }
+  })
+
+  // res.send({
+  //   response: queryResponse.matches,
+  //   message: "All Stories Are Here"
+  // })
+  // } catch (error) {
+  //   res.status(500).send({
+  //     message: "Error While Getting Stories",
+  //     error
+  //   })
+  // }
 
 });
 
@@ -87,24 +93,16 @@ app.post("/api/v1/story", async (req, res) => {
 
     const vector = response.data[0].embedding
 
-    const index = pinecone.Index(process.env.PINE_CONE_INDEX_NAME);
+    const index = pinecone.index(process.env.PINE_CONE_INDEX_NAME);
 
-    const upsertRequest = {
-      vectors: [
-        {
-          id: nanoid(),
-          values: vector,
-          metadata: {
-            title: req.body.title,
-            text: req.body.text
-          },
-          namespace: process.env.PINE_CONE_NAME_SPACE
-        }
-      ]
-    }
-
-
-    const upsertResponse = await index.upsert({ upsertRequest })
+    const upsertResponse = await index.upsert([{
+      id: nanoid(),
+      values: vector,
+      metadata: {
+        title: req.body.title,
+        text: req.body.text
+      },
+    }])
 
     console.log(upsertResponse)
 
@@ -131,22 +129,16 @@ app.put("/api/v1/story/:id", async (req, res) => {
   console.log("response?.data: ", response?.data);
   const vector = response.data[0].embedding
 
-  const index = pinecone.Index(process.env.PINE_CONE_INDEX_NAME);
-
-  const upsertRequest = {
-    vectors: [
-      {
-        id: req.params.id, // unique id, // unique id
-        values: vector,
-        metadata: {
-          title: req.body.title,
-          text: req.body.text
-        }
-      }
-    ],
-  };
+  const index = pinecone.index(process.env.PINE_CONE_INDEX_NAME);
   try {
-    const upsertResponse = await index.upsert({ upsertRequest });
+    const upsertResponse = await index.upsert([{
+      id: nanoid(),
+      values: vector,
+      metadata: {
+        title: req.body.title,
+        text: req.body.text
+      },
+    }])
     console.log("upsertResponse: ", upsertResponse);
 
     res.send({
@@ -164,13 +156,9 @@ app.put("/api/v1/story/:id", async (req, res) => {
 app.delete("/api/v1/story/:id", async (req, res) => {
   try {
 
-    const index = pinecone.Index(process.env.PINE_CONE_INDEX_NAME);
+    const index = pinecone.index(process.env.PINE_CONE_INDEX_NAME);
 
-    const deleteResponse = await index.delete1({
-      ids: [req.params.id],
-      deleteAll: false,
-      // namespace: process.env.PINECONE_NAME_SPACE
-    })
+    const deleteResponse = await index.deleteOne(String(req.params.id))
 
     res.send({
       deleteResponse,

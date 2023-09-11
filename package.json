@@ -15,7 +15,7 @@
     "nodemon": "^3.0.1"
   },
   "dependencies": {
-    "@pinecone-database/pinecone": "^0.1.6",
+    "@pinecone-database/pinecone": "^1.0.0",
     "concurrently": "^8.2.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -24,6 +24,6 @@
     "mongodb": "^6.0.0",
     "morgan": "^1.10.0",
     "nanoid": "^4.0.2",
-    "openai": "^4.4.0"
+    "openai": "^4.6.0"
   }
 }
