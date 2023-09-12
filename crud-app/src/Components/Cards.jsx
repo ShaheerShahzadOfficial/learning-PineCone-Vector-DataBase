@@ -46,18 +46,18 @@ const Cards = ({ item, data, setData }) => {
 
     return (
         <>
-            <div className="p-2 lg:w-1/3 md:w-1/2 w-full">
+            <div className="p-2 lg:w-1/2 md:w-1/2 w-full">
                 <div className="h-full flex flex-col items-center border-gray-300 border p-4 rounded-lg">
                     <div className="flex-grow">
                         <h2 className="text-gray-800 text-xl font-medium">{item?.metadata?.title}</h2>
-                        <p className="text-gray-600 text-lg">{item?.metadata?.text}</p>
+                        <p className="text-gray-600 text-lg text-left">{item?.metadata?.text}</p>
                     </div>
                     <div className="flex items-center my-2 justify-center w-full">
-                        <button onClick={() => setOpen(true)} className="w-1/4 p-1 m-2 rounded-lg text-white bg-blue-700 px-4 font-semibold hover:bg-blue-900 hover:trandform ease-in-out duration-300"> Edit </button>
-                        <button onClick={DeleteStory} className="w-1/4 p-1 m-2 rounded-lg text-white bg-red-500 px-4 font-semibold hover:bg-red-900 hover:trandform ease-in-out duration-300"> Delete </button>
+                        <button onClick={() => setOpen(true)} className="w-1/6 p-1 m-2 rounded-lg text-white bg-blue-700 px-4 font-semibold hover:bg-blue-900 hover:trandform ease-in-out duration-300"> Edit </button>
+                        <button onClick={DeleteStory} className="w-1/6 p-1 m-2 rounded-lg text-white bg-red-500 px-4 font-semibold hover:bg-red-900 hover:trandform ease-in-out duration-300"> Delete </button>
 
                     </div>
-                </div>
+                </div>  
             </div>
 
             {Open ?

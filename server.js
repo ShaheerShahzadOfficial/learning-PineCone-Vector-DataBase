@@ -57,6 +57,7 @@ app.get("/api/v1/stories", async (req, res) => {
   await index.query({
     vector: vector,
     topK: 100,
+    
     includeValues: false,
     includeMetadata: true,
   }).then((resp) => {

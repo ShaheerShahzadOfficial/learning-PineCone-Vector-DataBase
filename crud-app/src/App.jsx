@@ -1,19 +1,21 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import axios from "axios";
 import "./App.css";
 import Loader from "./assets/loader.gif"
 import toast from 'react-hot-toast';
 import Cards from "./Components/Cards";
 
-export const baseUrl = 'http://localhost:8088';
-
+export const baseUrl = import.meta.env.VITE_BASEURL
 
 function App() {
   const titleInputRef = useRef(null);
   const bodyInputRef = useRef(null);
+  const SearchInputRef = useRef(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const [data, setData] = useState([]);
+  const id = useId()
 
 
 
@@ -23,12 +25,11 @@ function App() {
 
   const getAllStories = async () => {
     setIsLoading(true);
-
-    await axios.get(`${baseUrl}/api/v1/stories?queryText=${titleInputRef.current.value || " "}`).then((resp) => {
+    await axios.get(`${baseUrl}/api/v1/stories?queryText=${" "}`).then((resp) => {
       setIsLoading(false);
-      setData(resp.data?.response)
+      setData(resp.data?.response?.matches)
       // toast.success(resp?.data?.message)
-
+      console.log(resp.data?.response?.matches)
     }).catch((error) => {
       setIsLoading(false);
       // toast.error(error.response?.data?.message || error?.message)
@@ -49,7 +50,6 @@ function App() {
         }).then((response) => {
           toast.success(response?.data?.message)
           setIsLoading(false);
-          getAllStories()
           event.target.reset();
         }).catch((error) => {
           toast.error(error.response?.data?.message || error?.message)
@@ -72,10 +72,45 @@ function App() {
   };
 
 
+  const search = async (event) => {
+    event.preventDefault();
+
+    setIsLoading(true);
+    await axios.get(`${baseUrl}/api/v1/stories?queryText=${SearchInputRef?.current?.value || " "}`).then((resp) => {
+      setIsLoading(false);
+      setData(resp.data?.response?.matches)
+      // toast.success(resp?.data?.message)
+      console.log(resp.data?.response)
+    }).catch((error) => {
+      setIsLoading(false);
+      // toast.error(error.response?.data?.message || error?.message)
+
+    })
+
+  }
+
 
   return (
     <div>
       <h1 className="font-mono text-2xl	font-bold	italic subpixel-antialiased">Social Stories</h1>
+
+      <form onSubmit={search}>
+
+        <div className="lg:w-1/2 md:w-2/3 mx-auto mb-10">
+          <div className="flex flex-wrap">
+            <div className="p-2 w-full">
+              <div className="relative flex items-center justify-center w-full bg-gray-100 bg-opacity-50 rounded-full border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-1 leading-8 transition-colors duration-200 ease-in-out">
+                <input id="SearchInput" placeholder="Search Here" ref={SearchInputRef} type="text" className="w-[90%] bg-transparent outline-none px-6" />
+                <button type="submit" className="flex mx-auto text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded-full	text-lg">Search</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+
+      <h1 className="font-mono text-2xl mb-6	font-bold	italic subpixel-antialiased">Create A New Story</h1>
 
 
       <form onSubmit={postStory}>
