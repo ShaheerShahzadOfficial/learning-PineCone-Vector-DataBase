@@ -133,7 +133,7 @@ app.put("/api/v1/story/:id", async (req, res) => {
   const index = pinecone.index(process.env.PINE_CONE_INDEX_NAME);
   try {
     const upsertResponse = await index.upsert([{
-      id: nanoid(),
+      id: req.params.id,
       values: vector,
       metadata: {
         title: req.body.title,
