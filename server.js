@@ -35,7 +35,7 @@ const productsCollection = database.collection('products');
 
 const app = express();
 app.use(express.json());
-app.use(cors(["http://localhost:5173"]));
+app.use(cors(["http://localhost:5173","https://pinecone-crud-frontend.vercel.app/"]));
 
 app.use(morgan('combined'));
 
